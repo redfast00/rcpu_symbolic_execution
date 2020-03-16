@@ -15,18 +15,24 @@ select_array(A, Idx, Value) :- A = store_array(B, OtherIdx, _), OtherIdx #\= Idx
 
 
 
-machine_state(_IP, _A, _B, _C, _D, _Stack, _Inputstack, _Outputstack, _Memory).
+machine_state(_IP, _A, _B, _C, _D, _Stack, _Inputlist, _Outputlist, _Memory, _Crashed, _Halted).
 
 
-% transition_condition(Initial, Next) :- Next #= Initial + 1.
+% transition_condition(machine_state(1, A, B, C, D, Stack, Inputstack, Outputstack, Memory, 0, 0),machine_state(2, A, B, C, A, Stack, Inputstack, Outputstack, Memory, 0, 0)).
+%
+% %
+% %
+% %
 
-final_condition(State) :- State #= 3.
+% %
+% % solution(X) :- oscar([0|X]).
+:- consult(machinedb).
 
+% machine_state(_IP, _A, _B, _C, _D, _Stack, _Inputlist, _Outputlist, _Memory, _Crashed, _Halted)
+final_condition(machine_state(_IP, _A, _B, _C, _D, _Stack, _Inputlist, [3], _Memory, 0, _Halted)).
 
 oscar([Last]) :- final_condition(Last).
 oscar([Current, Next|T]) :- transition_condition(Current, Next), oscar([Next|T]).
 
-solution(X) :- oscar([0|X]).
 
-
-
+solution(Inputstack, Rest) :- oscar([machine_state(0, 0, 0, 0, 0, [], Inputstack, [], init_array(0), 0, 0)|Rest]).
