@@ -19,13 +19,7 @@ machine_state(_IP, _A, _B, _C, _D, _Stack, _Inputlist, _Outputlist, _Memory, _Cr
 
 
 % transition_condition(machine_state(1, A, B, C, D, Stack, Inputstack, Outputstack, Memory, 0, 0),machine_state(2, A, B, C, A, Stack, Inputstack, Outputstack, Memory, 0, 0)).
-%
-% %
-% %
-% %
 
-% %
-% % solution(X) :- oscar([0|X]).
 :- consult(machinedb).
 
 % machine_state(_IP, _A, _B, _C, _D, _Stack, _Inputlist, _Outputlist, _Memory, _Crashed, _Halted)
