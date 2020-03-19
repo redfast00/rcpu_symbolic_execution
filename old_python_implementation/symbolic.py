@@ -16,7 +16,7 @@ def transition_function(current, next):
 def compose(head, *limbs):
     return f'{head} :- {", ".join(limbs)}'
 
-class CPU: 
+class CPU:
     def encode_prolog(self, filename):
         with open(filename, "rb") as infile:
             raw = infile.read()
