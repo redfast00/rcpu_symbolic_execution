@@ -3,18 +3,19 @@
 main:
 LDV A, 0
 PSH A
-;; input a char
-SYS
-;  move char that was put in to the A register
-POP C
-; load 1 into D
-LDV D, 1
-; A = A + D
-ADD C, D
+SYS ; syscall to input a char
+
+POP C ;  move char that was read in the C register
+
+LDV D, 1 ; load 1 into D
+
+ADD C, D ; C = C + D
+
+; Prepare stack for outputting C register
 PSH C
 LDV A, 1
 PSH A
-; output from stack to output
 SYS
+
 ; halt the machine
 HLT
