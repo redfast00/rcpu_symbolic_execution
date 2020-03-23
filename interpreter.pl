@@ -36,8 +36,7 @@ add_instructions(N, [A|Rest]) :-
 %              gets cons'd onto the old write list.
 
 
-read_byte(virtual([ByteRead|InStack], OutStack), virtual(InStack, OutStack), ByteRead) :-
-  ByteRead #=< 0xFF, ByteRead #>= 0.
+read_byte(virtual([ByteRead|InStack], OutStack), virtual(InStack, OutStack), ByteRead).
 
 read_byte(real(InStream, OutStream), real(InStream, OutStream), ByteRead) :-
   get_byte(InStream, ByteRead).

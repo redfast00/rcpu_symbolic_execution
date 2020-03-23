@@ -45,10 +45,17 @@ three_final_condition(machine_state(_IP, _A, _B, _C, _D, _Stack, virtual([], [V]
 three_transition_list([Last])            :- three_final_condition(Last).
 three_transition_list([Current, Next|T]) :- trans(Current, Next), three_transition_list([Next|T]).
 
+all_bytes([]).
+all_bytes([C|R]) :-
+  0 #=< C,
+  C #=< 0xFF,
+  all_bytes(R).
+
 main([three, InFilename]) :-
   assemble_to_ast(AsmList, InFilename),
   add_instructions(AsmList),
   write("Searching for output that results in [3]\n"),
+  all_bytes(Asked),
   three_transition_list([machine_state(0, 0, 0, 0, 0, [], virtual(Asked, []), init_array(0), 0, 0)|_]),
   write("\nEND OF PROGRAM,\ninput = "),
   % Now there are still multiple possibilities, so label all of them
