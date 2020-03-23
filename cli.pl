@@ -2,6 +2,7 @@
 
 :- use_module(assembler).
 :- use_module(interpreter).
+:- use_module(library(clpfd)).
 
 % > ./cli.pl assemble testcases/basic.asm test.out
 % This assembles the source code into a binary file the interpreter can read
@@ -10,7 +11,7 @@
 % > sha1sum testcases/basic.out test.out
 % testcases/basic.out is the output of the original Python assembler
 % This assembler gives the same output
-
+:- discontiguous main/1.
 :- initialization(main, main).
 
 main([assemble, InFilename, OutFilename]) :-
@@ -37,3 +38,19 @@ emulate_final_condition(machine_state(_IP, _A, _B, _C, _D, _Stack, _IOContext, _
 
 emulate_transition_list([Last])            :- emulate_final_condition(Last).
 emulate_transition_list([Current, Next|T]) :- trans(Current, Next), emulate_transition_list([Next|T]).
+
+three_final_condition(machine_state(_IP, _A, _B, _C, _D, _Stack, virtual([], [V]), _Memory, _, 1)) :-
+  V #= 3.
+
+three_transition_list([Last])            :- three_final_condition(Last).
+three_transition_list([Current, Next|T]) :- trans(Current, Next), three_transition_list([Next|T]).
+
+main([three, InFilename]) :-
+  assemble_to_ast(AsmList, InFilename),
+  add_instructions(AsmList),
+  write("Searching for output that results in [3]\n"),
+  three_transition_list([machine_state(0, 0, 0, 0, 0, [], virtual(Asked, []), init_array(0), 0, 0)|_]),
+  write("\nEND OF PROGRAM,\ninput = "),
+  % Now there are still multiple possibilities, so label all of them
+  label(Asked),
+  write(Asked),nl.
