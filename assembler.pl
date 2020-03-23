@@ -1,26 +1,14 @@
-#!/usr/bin/env swipl
-
-% > ./assembler.pl testcases/basic.asm test.out
-% This assembles the source code into a binary file the interpreter can read
-
-
-% > sha1sum testcases/basic.out test.out
-% testcases/basic.out is the output of the original Python assembler
-% This assembler gives the same output
-
-:- initialization(main, main).
+:- module(assembler, [assemble_to_ast/2, assemble_to_file/2]).
 
 :- use_module(library(clpfd)).
 :- use_module(parser).
 
-main([InFilename, OutFilename]) :-
-  write("Starting to assemble\n"),
-  assemble(AsmList, InFilename),
-  open(OutFilename, write, Fd, [type(binary)]),
-  write_instructions(Fd, AsmList),
-  close(Fd),
-  write("Done\n").
 
+assemble_to_file(AsmList, OutFilename) :-
+  maplist(asm, AsmList0, AsmList),
+  open(OutFilename, write, Fd, [type(binary)]),
+  write_instructions(Fd, AsmList0),
+  close(Fd).
 
 write_instructions(_, []).
 write_instructions(Stream, [Instruction|Rest]) :-
@@ -32,14 +20,14 @@ write_instructions(Stream, [Instruction|Rest]) :-
 
 % TODO find out what we want to do about order of In/Out in predicates
 
-assemble(AsmList, Filename) :-
+assemble_to_ast(AsmList, Filename) :-
   phrase_from_file(parse_program(Entrypoint, AsmList0), Filename), % parse assembly code
   !, % HACK Only consider one possible way to parse program
   AsmList1 = [ins('JMP', [Entrypoint])|AsmList0], % insert jump instruction to entrypoint
   label_mapping(AsmList1, Labelmapping), % make a mapping of labels to addresses
   filter_instruction(AsmList2, AsmList1), % only keep instructions in list
-  maplist(make_ins_label_constant(Labelmapping), AsmList3, AsmList2), % convert all labels to constants
-  maplist(asm, AsmList3, AsmList).
+  maplist(make_ins_label_constant(Labelmapping), AsmList, AsmList2). % convert all labels to constants
+
 
 bigconst(X) :- X #=< 0x3FF, X #>= 0.
 

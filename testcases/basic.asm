@@ -9,7 +9,8 @@ POP C ;  move char that was read in the C register
 
 LDV D, 1 ; load 1 into D
 
-ADD C, D ; C = C + D
+; ADD C, D ; C = C + D
+ATH C, D, 0, 0, 0
 
 ; Prepare stack for outputting C register
 PSH C
