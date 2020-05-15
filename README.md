@@ -26,12 +26,16 @@ manual extraction of constraints is impossible).
 Example:
 
 ```
-SYS IN ;; input a char
+LDV A, 0
+PSH A
+SYS
 POP A  ;; move char that was put in to the A register
 LDV D, 1 ;; load 1 into D
 ADD A, D ;; A = A + D
 PUSH A
-SYS OUT ;; output from stack to output
+LDV A, 1
+PSH A
+SYS ;; output from stack to output
 HLT ;; halt the machine
 ```
 
@@ -49,13 +53,18 @@ Constraints:
 
 Program:
 ```
-SYS IN
+LDV A, 0
+PSH A
+SYS
+PSH A
+SYS
+PSH A
+SYS
+PSH A
+SYS
 POP A
-SYS IN
 POP B
-SYS IN
 POP C
-SYS IN
 POP D
 SUB D, A ;; D = D - A
 HLT
@@ -75,21 +84,22 @@ Program:
 
 ```
 LDV A, 5
-SYS IN
+LDV B, 0
+PSH B
+SYS
 POP B
-LDV C, :good
+LDV C, good:
 JLT B, C ;; jumps to C if A < B
-JMP :bad
+JMP bad:
 
-:good
+good:
 
-:win
+win:
 ADD C, D
 HLT
 
-:bad
+bad:
 HLT
-
 ```
 
 ### Find an input that results in certain configuration of values on the stack at program end
@@ -107,17 +117,25 @@ TOS[0] = TOS[1], TOS[2] > 1
 ```
 Program:
 ```
-SYS IN
-SYS IN
-SYS IN
-SYS IN
+LDV A, 0
+LDV C, 0
+PSH A
+SYS
+PSH A
+SYS
+PSH A
+SYS
+PSH A
+SYS
 POP D
 LDV A, 1
 ADD D, A ;; D = D + A
-JMP :label
-SYS IN ;; unreachable
-:label
-SYS IN
+JMP label:
+PSH C
+SYS ;; unreachable
+label:
+PSH C
+SYS
 PSH D
 HLT
 ```
@@ -132,7 +150,9 @@ Example program will input a number that will be on the stack. It
 will then return to that address.
 
 ```
-SYS IN
+LDV A, 0
+PSH A
+SYS
 RET
 HLT
 HLT
@@ -150,8 +170,6 @@ Here, any input bigger than 4 will result in the RCPU machine jumping to undefin
   like `printf`.
 - It won't be possible to write self-modifying code: the instructions
   and data will live in a different address space.
-- (in first stage) the SYS instruction won't take its syscall number
-  from the stack, but this will be encoded in the instruction itself: for input, normally `LDV A, 0 / PSH A / LDV A, 2 / PSH A /SYS` is used. In this reduced version, a single instruction is executed: `SYS IN`.
 
 ## Some examples of the RCPU machine crashing
 

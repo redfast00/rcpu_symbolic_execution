@@ -22,8 +22,20 @@ main([assemble, InFilename, OutFilename]) :-
 
 
 
-main([emulate, InFilename]) :-
+main([run_text, InFilename]) :-
   assemble_to_ast(AsmList, InFilename),
+  add_instructions(AsmList),
+  set_stream(user_input, type(binary)),
+  set_stream(user_output, type(binary)),
+  set_stream(user_input, buffer(false)),
+  emulate_transition_list([machine_state(0, 0, 0, 0, 0, [], real(user_input, user_output), init_array(0), 0, 0)|Rest]),
+  write("\nEND OF PROGRAM\n"),
+  write(Rest).
+
+main([run_binary, InFilename]) :-
+  ast_from_file(InFilename, AsmList),
+  write(AsmList),
+  write(AsmList),
   add_instructions(AsmList),
   set_stream(user_input, type(binary)),
   set_stream(user_output, type(binary)),

@@ -1,4 +1,4 @@
-:- module(assembler, [assemble_to_ast/2, assemble_to_file/2]).
+:- module(assembler, [assemble_to_ast/2, assemble_to_file/2, ast_from_file/2]).
 
 :- use_module(library(clpfd)).
 :- use_module(parser).
@@ -10,6 +10,13 @@ assemble_to_file(AsmList, OutFilename) :-
   write_instructions(Fd, AsmList0),
   close(Fd).
 
+ast_from_file(InFilename, AsmList) :-
+  open(InFilename, read, Fd, [type(binary)]),
+  read_instructions(Fd, AsmList0),
+  maplist(asm, AsmList, AsmList0),
+  close(Fd).
+
+
 write_instructions(_, []).
 write_instructions(Stream, [Instruction|Rest]) :-
   First #= (Instruction >> 8) /\ 0xff,
@@ -19,6 +26,13 @@ write_instructions(Stream, [Instruction|Rest]) :-
   write_instructions(Stream, Rest).
 
 % TODO find out what we want to do about order of In/Out in predicates
+
+read_instructions(Stream, []) :- at_end_of_stream(Stream).
+read_instructions(Stream, [Instruction|Rest]) :-
+  get_byte(Stream, First),
+  get_byte(Stream, Second),
+  Instruction #= (First << 8) + Second,
+  read_instructions(Stream, Rest).
 
 assemble_to_ast(AsmList, Filename) :-
   phrase_from_file(parse_program(Entrypoint, AsmList0), Filename), % parse assembly code
