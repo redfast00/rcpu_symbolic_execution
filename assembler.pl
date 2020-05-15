@@ -5,7 +5,7 @@
 
 
 assemble_to_file(AsmList, OutFilename) :-
-  maplist(asm, AsmList0, AsmList),
+  maplist(asm, AsmList, AsmList0),
   open(OutFilename, write, Fd, [type(binary)]),
   write_instructions(Fd, AsmList0),
   close(Fd).
