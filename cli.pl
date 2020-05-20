@@ -1,5 +1,4 @@
 #!/usr/bin/env swipl
-
 :- use_module(assembler).
 :- use_module(interpreter).
 :- use_module(transition).
@@ -41,31 +40,23 @@ run_real_mode(AsmList, Execution) :-
   set_stream(user_input, buffer(false)),
   emulate_transition_list([machine_state(0, 0, 0, 0, 0, [], real(user_input, user_output), init_array(0), 0, 0)|Execution]).
 
-
-all_bytes([C]) :-
-  0 #=< C,
-  C #=< 0xFF.
-all_bytes([C|R]) :-
-  0 #=< C,
-  C #=< 0xFF,
-  all_bytes(R).
+report(Result) :-
+  write("END OF PROGRAM,\ninput = "),
+  % Now there are still multiple possibilities, so label and get one of them
+  label(Result),
+  write(Result),nl,nl.
 
 main([even, InFilename]) :-
   ast_from_file(InFilename, AsmList),
   add_instructions(AsmList),
   write("Searching for input that results in output [V] where V is even\n"),
-  all_bytes(Asked),
   even_transition_list([machine_state(0, 0, 0, 0, 0, [], virtual(Asked, []), init_array(0), 0, 0)|_]),
-  write("\nEND OF PROGRAM,\ninput = "),
-  % Now there are still multiple possibilities, so label and get one of them
-  label(Asked),
-  write(Asked),nl.
+  report(Asked).
 
 main([register_config, InFilename]) :-
   ast_from_file(InFilename, AsmList),
   add_instructions(AsmList),
   write("Searching for input that results in a certain register configuration\n"),
-  all_bytes(Asked),
   % TODO if there is time left, find a way to get the user to input these conditions instead of hardcoding them
   %  this will take some time, since we'd have to parse user input
   A #= 2*B,
@@ -73,55 +64,31 @@ main([register_config, InFilename]) :-
   C #= 5,
   D #= A + 1,
   register_state_transition_list([machine_state(0, 0, 0, 0, 0, [], virtual(Asked, []), init_array(0), 0, 0)|_], A, B, C, D),
-  write(Asked),
-  write("\nEND OF PROGRAM,\ninput = "),
-  % Now there are still multiple possibilities, so label and get one of them
-  label(Asked),
-  write(Asked),nl.
+  report(Asked).
 
-main([reach_ip, InFilename]) :-
+main([reach_ip, InFilename, ToReachStr]) :-
+  atom_number(ToReachStr, ToReach),
   ast_from_file(InFilename, AsmList),
-  write(AsmList),
   add_instructions(AsmList),
   write("Trying to reach certain IP\n"),
-  all_bytes(Asked),
-  % TODO take this from cli
-  ToReach #= 10,
-  Asked = [5],
   reach_ip_transition_list([machine_state(0, 0, 0, 0, 0, [], virtual(Asked, []), init_array(0), 0, 0)|_], ToReach),
-  write(Asked),
-  write("\nEND OF PROGRAM,\ninput = "),
-  % Now there are still multiple possibilities, so label and get one of them
-  label(Asked),
-  write(Asked),nl.
+  report(Asked).
 
 main([stack_config, InFilename]) :-
   ast_from_file(InFilename, AsmList),
   add_instructions(AsmList),
   write("Searching for input that results in a certain stack configuration\n"),
-  all_bytes(Asked),
   [First, Second, Third | _] = DesiredStack,
   First #= Second,
   Third #> 1,
   stack_state_transition_list([machine_state(0, 0, 0, 0, 0, [], virtual(Asked, []), init_array(0), 0, 0)|_], DesiredStack),
-  write(Asked),
   % TODO if there is time left, find a way to get the user to input these conditions instead of hardcoding them
   %  this will take some time, since we'd have to parse user input
-
-  write("\nEND OF PROGRAM,\ninput = "),
-  % Now there are still multiple possibilities, so label and get one of them
-  label(Asked),
-  write(Asked),nl.
+  report(Asked).
 
 main([crash, InFilename]) :-
   ast_from_file(InFilename, AsmList),
   add_instructions(AsmList),
   write("Searching for input that crashes the machine\n"),
-  all_bytes(Asked),
   crashed_transition_list([machine_state(0, 0, 0, 0, 0, [], virtual(Asked, []), init_array(0), 0, 0)|_]),
-  write(Asked),
-
-  write("\nEND OF PROGRAM,\ninput = "),
-  % Now there are still multiple possibilities, so label and get one of them
-  label(Asked),
-  write(Asked),nl.
+  report(Asked).

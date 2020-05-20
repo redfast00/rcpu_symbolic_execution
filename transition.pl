@@ -22,19 +22,21 @@ even_transition_list([Current, Next|T]) :- trans(Current, Next), even_transition
 
 % transition_list for a certain register configuration that is passed as arguments. Accepts when machine is halted and
 %  register config is correct
-register_state_final_condition(machine_state(_IP, A, B, C, D, _Stack, _IO, _Memory, _Crashed, 1), A_c, B_c, C_c, D_c) :-
+register_state_final_condition(machine_state(_IP, A, B, C, D, _Stack, IO, _Memory, _Crashed, 1), A_c, B_c, C_c, D_c) :-
   A #= A_c,
   B #= B_c,
   C #= C_c,
-  D #= D_c.
+  D #= D_c,
+  IO = virtual([], _).
 
 register_state_transition_list([Last], A, B, C, D)            :- register_state_final_condition(Last, A, B, C, D).
 register_state_transition_list([Current, Next|T], A, B, C, D) :- trans(Current, Next), register_state_transition_list([Next|T], A, B, C, D).
 
 % transition_list for when the machine reaches an instruction. Accepts when machine reaches the IP.
 
-reach_ip_final_condition(machine_state(IP, _A, _B, _C, _D, _Stack, _IO, _Memory, _Crashed, _Halted), IP_c) :-
-  IP #= IP_c.
+reach_ip_final_condition(machine_state(IP, _A, _B, _C, _D, _Stack, IO, _Memory, _Crashed, _Halted), IP_c) :-
+  IP #= IP_c,
+  IO = virtual([], _).
 
 reach_ip_transition_list([Last], IP)            :- reach_ip_final_condition(Last, IP).
 reach_ip_transition_list([Current, Next|T], IP) :- trans(Current, Next), reach_ip_transition_list([Next|T], IP).
@@ -42,8 +44,8 @@ reach_ip_transition_list([Current, Next|T], IP) :- trans(Current, Next), reach_i
 % transition__list for a certain stack configuration that is passed as an argument. Accepts when machine is halted
 %  and stack config is correct
 
-stack_state_final_condition(machine_state(_IP, _A, _B, _C, _D, Stack, _IO, _Memory, _Crashed, 1), DesiredStack) :-
-  DesiredStack = Stack.
+stack_state_final_condition(machine_state(_IP, _A, _B, _C, _D, Stack, IO, _Memory, _Crashed, 1), DesiredStack) :-
+  DesiredStack = Stack, IO = virtual([], _).
 
 stack_state_transition_list([Last], DesiredStack)            :- stack_state_final_condition(Last, DesiredStack).
 stack_state_transition_list([Current, Next|T], DesiredStack) :- trans(Current, Next), stack_state_transition_list([Next|T], DesiredStack).
@@ -51,7 +53,8 @@ stack_state_transition_list([Current, Next|T], DesiredStack) :- trans(Current, N
 
 % transition__list for crashing the machine. Accepts if the machine is crashed.
 
-crashed_final_condition(machine_state(_IP, _A, _B, _C, _D, _Stack, _IO, _Memory, 1, _Halted)).
+crashed_final_condition(machine_state(_IP, _A, _B, _C, _D, _Stack, IO, _Memory, 1, _Halted)) :-
+  IO = virtual([], _).
 
 crashed_transition_list([Last])            :- crashed_final_condition(Last).
 crashed_transition_list([Current, Next|T]) :- trans(Current, Next), crashed_transition_list([Next|T]).

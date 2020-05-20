@@ -159,7 +159,7 @@ HLT
 HLT
 ```
 
-Here, any input bigger than 4 will result in the RCPU machine jumping to undefined memory and crashing.
+Here, any input bigger than 7 will result in the RCPU machine jumping to undefined memory and crashing.
 
 
 ## Differences from [official RCPU specs](https://github.com/redfast00/RCPU)
@@ -170,6 +170,9 @@ Here, any input bigger than 4 will result in the RCPU machine jumping to undefin
   like `printf`.
 - It won't be possible to write self-modifying code: the instructions
   and data will live in a different address space.
+- Machine arithmetic is hard in prolog without adding a lot of `mod`
+  predicates, negatively affecting performance. For this reason,
+  machine arithmetic was not implemented
 
 ## Some examples of the RCPU machine crashing
 
