@@ -121,12 +121,12 @@ ath_op(0b0010, D, S, _, R) :- R #= D * S.
 ath_op(0b0011, D, S, _, R) :- R #= D / S.
 ath_op(0b0100, _, S, Shift, R) :- R #= S << Shift.
 ath_op(0b0101, _, S, Shift, R) :- R #= S >> Shift.
-ath_op(0b0110, D, S, R) :- R #= D /\ S.
-ath_op(0b0111, D, S, R) :- R #= D \/ S.
-ath_op(0b1000, D, S, R) :- R #= D xor S.
-ath_op(0b1001, _, S, R) :- R #= \ S.
-ath_op(0b1010, D, _, R) :- R #= D + 1.
-ath_op(0b1011, D, _, R) :- R #= D - 1.
+ath_op(0b0110, D, S, _, R) :- R #= D /\ S.
+ath_op(0b0111, D, S, _, R) :- R #= D \/ S.
+ath_op(0b1000, D, S, _, R) :- R #= D xor S.
+ath_op(0b1001, _, S, _, R) :- R #= \ S.
+ath_op(0b1010, D, _, _, R) :- R #= D + 1.
+ath_op(0b1011, D, _, _, R) :- R #= D - 1.
 
 % add_clauses/2 adds an instruction at location N to the knowledge database
 
@@ -220,7 +220,7 @@ add_clauses(N, ins('CAL', [register(Dest)])) :-
 add_clauses(N, ins('RET', [])) :-
   running_machine(OldState, N),
   access_stack([Target|Stack], _, OldState),
-  access_stack([Stack], OldState, NewState0),
+  access_stack(Stack, OldState, NewState0),
   access_IP(Target, NewState0, NewState),
   assertz(trans(OldState, NewState)),
 
@@ -253,7 +253,7 @@ add_clauses(N, ins('POP', [register(Dest)])) :-
   running_machine(OldState, N),
   NextIP #= N + 1,
   access_stack([Value|Stack], _, OldState),
-  access_stack([Stack], OldState, NewState0),
+  access_stack(Stack, OldState, NewState0),
   access_reg(Dest, Value, NewState0, NewState1),
   access_IP(NextIP, NewState1, NewState),
   assertz(trans(OldState, NewState)),
