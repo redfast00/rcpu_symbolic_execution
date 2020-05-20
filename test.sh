@@ -1,5 +1,6 @@
 #!/bin/bash
 
+# Assemble RCPU assembly source code to RCPU binaries
 for filename in testcases/*.asm; do
   echo -e "\e[32mAssembly of ${filename}\e[0m";
   ./cli.pl assemble $filename "testcases_assembled/$(basename $filename .asm).out"

@@ -4,23 +4,16 @@
 :- use_module(transition).
 :- use_module(library(clpfd)).
 
-% > ./cli.pl assemble testcases/basic.asm test.out
-% This assembles the source code into a binary file the interpreter can read
-
-
-% > sha1sum testcases/basic.out test.out
-% testcases/basic.out is the output of the original Python assembler
-% This assembler gives the same output
 :- discontiguous main/1.
 :- initialization(main, main).
+
+% See test.sh for usage examples
 
 main([assemble, InFilename, OutFilename]) :-
   write("Starting to assemble\n"),
   assemble_to_ast(Ast, InFilename),
   assemble_to_file(Ast, OutFilename),
   write("Done\n").
-
-
 
 main([run_text, InFilename]) :-
   assemble_to_ast(AsmList, InFilename),

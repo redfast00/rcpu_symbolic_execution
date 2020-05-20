@@ -170,7 +170,7 @@ Here, any input bigger than 7 will result in the RCPU machine jumping to undefin
   like `printf`.
 - It won't be possible to write self-modifying code: the instructions
   and data will live in a different address space.
-- Machine arithmetic is hard in prolog without adding a lot of `mod`
+- Machine arithmetic is hard in Prolog without adding a lot of `mod`
   predicates, negatively affecting performance. For this reason,
   machine arithmetic was not implemented
 
