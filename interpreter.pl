@@ -21,7 +21,7 @@ add_instructions(InstructionList) :-
 add_instructions(N, []) :-
   access_IP(M, _, OldState),
   access_crashed(1, OldState, NewState),
-  asserta(trans(OldState, NewState) :- M #> N).
+  asserta(trans(OldState, NewState) :- M #>= N).
 
 add_instructions(N, [A|Rest]) :-
   add_clauses(N, A), N0 #= N+1, add_instructions(N0, Rest).
