@@ -1,4 +1,4 @@
-:- module(transition, [emulate_transition_list/1, even_transition_list/1, register_state_transition_list/5, reach_ip_transition_list/2, stack_state_transition_list/2]).
+:- module(transition, [emulate_transition_list/1, even_transition_list/1, register_state_transition_list/5, reach_ip_transition_list/2, stack_state_transition_list/2, crashed_transition_list/1]).
 
 :- use_module(library(clpfd)).
 :- use_module(interpreter).
@@ -47,3 +47,11 @@ stack_state_final_condition(machine_state(_IP, _A, _B, _C, _D, Stack, _IO, _Memo
 
 stack_state_transition_list([Last], DesiredStack)            :- stack_state_final_condition(Last, DesiredStack).
 stack_state_transition_list([Current, Next|T], DesiredStack) :- trans(Current, Next), stack_state_transition_list([Next|T], DesiredStack).
+
+
+% transition__list for crashing the machine. Accepts if the machine is crashed.
+
+crashed_final_condition(machine_state(_IP, _A, _B, _C, _D, _Stack, _IO, _Memory, 1, _Halted)).
+
+crashed_transition_list([Last])            :- crashed_final_condition(Last).
+crashed_transition_list([Current, Next|T]) :- trans(Current, Next), crashed_transition_list([Next|T]).

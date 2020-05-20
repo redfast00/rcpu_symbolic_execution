@@ -112,3 +112,16 @@ main([stack_config, InFilename]) :-
   % Now there are still multiple possibilities, so label and get one of them
   label(Asked),
   write(Asked),nl.
+
+main([crash, InFilename]) :-
+  ast_from_file(InFilename, AsmList),
+  add_instructions(AsmList),
+  write("Searching for input that crashes the machine\n"),
+  all_bytes(Asked),
+  crashed_transition_list([machine_state(0, 0, 0, 0, 0, [], virtual(Asked, []), init_array(0), 0, 0)|_]),
+  write(Asked),
+
+  write("\nEND OF PROGRAM,\ninput = "),
+  % Now there are still multiple possibilities, so label and get one of them
+  label(Asked),
+  write(Asked),nl.
