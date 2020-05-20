@@ -4,17 +4,19 @@
 :- use_module(parser).
 
 
+% Cut after doing file IO to prevent backtracking over closed files
+
 assemble_to_file(AsmList, OutFilename) :-
   maplist(asm, AsmList, AsmList0),
   open(OutFilename, write, Fd, [type(binary)]),
   write_instructions(Fd, AsmList0),
-  close(Fd).
+  close(Fd), !.
 
 ast_from_file(InFilename, AsmList) :-
   open(InFilename, read, Fd, [type(binary)]),
   read_instructions(Fd, AsmList0),
   maplist(asm, AsmList, AsmList0),
-  close(Fd).
+  close(Fd), !.
 
 
 write_instructions(_, []).
