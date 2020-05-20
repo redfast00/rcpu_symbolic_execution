@@ -24,27 +24,25 @@ main([assemble, InFilename, OutFilename]) :-
 
 main([run_text, InFilename]) :-
   assemble_to_ast(AsmList, InFilename),
-  add_instructions(AsmList),
-  set_stream(user_input, type(binary)),
-  set_stream(user_output, type(binary)),
-  set_stream(user_input, buffer(false)),
-  emulate_transition_list([machine_state(0, 0, 0, 0, 0, [], real(user_input, user_output), init_array(0), 0, 0)|Rest]),
-  write("\nEND OF PROGRAM\n"),
-  write(Rest).
+  run_real_mode(AsmList, Execution),
+  write(Execution).
 
 main([run_binary, InFilename]) :-
   ast_from_file(InFilename, AsmList),
-  write(AsmList),
-  write(AsmList),
+  run_real_mode(AsmList, Execution),
+  write(Execution).
+
+
+run_real_mode(AsmList, Execution) :-
   add_instructions(AsmList),
   set_stream(user_input, type(binary)),
   set_stream(user_output, type(binary)),
   set_stream(user_input, buffer(false)),
-  emulate_transition_list([machine_state(0, 0, 0, 0, 0, [], real(user_input, user_output), init_array(0), 0, 0)|Rest]),
-  write("\nEND OF PROGRAM\n"),
-  write(Rest).
+  emulate_transition_list([machine_state(0, 0, 0, 0, 0, [], real(user_input, user_output), init_array(0), 0, 0)|Execution]).
 
 
+% The final condition and transitionlist function for just a regular emulator
+% It halts when it naturally halts (by a HLT instruction) or when it crashes
 emulate_final_condition(machine_state(_IP, _A, _B, _C, _D, _Stack, _IOContext, _Memory, _, 1)).
 emulate_final_condition(machine_state(_IP, _A, _B, _C, _D, _Stack, _IOContext, _Memory, 1, _)).
 

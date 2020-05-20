@@ -50,6 +50,19 @@ register_mapping('B', 0b01).
 register_mapping('C', 0b10).
 register_mapping('D', 0b11).
 
+
+% explicitly define left shit in order for CLPFD to be able to reason back:
+%  it can find R from B and A (left shift), but also A from B and R (inverse operation).
+% This is needed because by default, the CLPFD library in swi-prolog is currently (8.0.3)
+%  not able to reason back. Other prolog implementations might be able to do this natively
+%  and more efficiently (looking at SICStus Prolog, developed by the author of the CLPFD library),
+%  for these implementations, this function could be removed since it's probably less efficient
+
+lsh(A, B, R) :-
+  R #= A << B,
+  A #= R >> B,
+  R /\ (1<<B - 1) #= 0.
+
 % conventions about naming in the `asm` predicates:
 %  D  = destination register
 %  Db = destination register, represented as bits
@@ -58,37 +71,50 @@ register_mapping('D', 0b11).
 %  M  = memory location
 %  V  = constant value
 %  R  = assembled instruction
+%  any variable suffixed with `r`: the result of shifting it its place in the instruction
 
 
 asm(ins('MOV', [register(D), register(S)]), R) :-
   register_mapping(D, Db),
   register_mapping(S, Sb),
-  R #= 0b0000 + (Db << 4) + (Sb << 6).
+  lsh(Db, 4, Dr),
+  lsh(Sb, 6, Sr),
+  R #= 0b0000 + Dr + Sr.
 
 asm(ins('LDV', [register(D), constant(V)]), R) :-
   register_mapping(D, Db),
   bigconst(V),
-  R #= 0b0001 + (Db << 4) + (V << 6).
+  lsh(Db, 4, Dr),
+  lsh(V, 6, Vr),
+  R #= 0b0001 + Dr + Vr.
 
 asm(ins('LDA', [register(D), constant(M)]), R) :-
   register_mapping(D, Db),
   bigconst(M),
-  R #= 0b0010 + (Db << 4) + (M << 6).
+  lsh(Db, 4, Dr),
+  lsh(M, 6, Mr),
+  R #= 0b0010 + Dr + Mr.
 
 asm(ins('LDM', [register(D), constant(M)]), R) :-
   register_mapping(D, Db),
   bigconst(M),
-  R #= 0b0011 + (Db << 4) + (M << 6).
+  lsh(Db, 4, Dr),
+  lsh(M, 6, Mr),
+  R #= 0b0011 + Dr + Mr.
 
 asm(ins('LDR', [register(D), register(S)]), R) :-
   register_mapping(D, Db),
   register_mapping(S, Sb),
-  R #= 0b0100 + (Db << 4) + (Sb << 6).
+  lsh(Db, 4, Dr),
+  lsh(Sb, 6, Sr),
+  R #= 0b0100 + Dr + Sr.
 
 asm(ins('LDP', [register(D), register(S)]), R) :-
   register_mapping(D, Db),
   register_mapping(S, Sb),
-  R #= 0b0101 + (Db << 4) + (Sb << 6).
+  lsh(Db, 4, Dr),
+  lsh(Sb, 6, Sr),
+  R #= 0b0101 + Dr + Sr.
 
 % ATH (arithmetic instructions)
 %  Op          = which arithmetic instruction to execute
@@ -96,6 +122,9 @@ asm(ins('LDP', [register(D), register(S)]), R) :-
 %  ShiftAmount = amount to shift by if shifting
 
 asm(ins('ATH', [register(D), register(S), constant(Op), constant(Mode), constant(ShiftAmount)]), R) :-
+  % fail earlier in case we are going in the direction of binary instruction to AST
+  %  this prevents us from having to calculate the rest if the instruction isn't even correct
+  R /\ 0b1111 #= 0b0110,
   register_mapping(D, Db),
   register_mapping(S, Sb),
   Op #=< 0b1111,
@@ -104,7 +133,17 @@ asm(ins('ATH', [register(D), register(S), constant(Op), constant(Mode), constant
   Mode #>= 0b0,
   ShiftAmount #=< 0b111,
   ShiftAmount #>= 0b000,
-  R #= 0b0110 + (Db << 4) + (Sb << 6) + (Op << 8) + (Mode << 12) + (ShiftAmount << 13).
+  lsh(Db, 4, Dr),
+  lsh(Sb, 6, Sr),
+  lsh(Op, 8, Opr),
+  lsh(Mode, 12, Moder),
+  lsh(ShiftAmount, 13, ShiftAmountr),
+  % Force concrete instances of values here, this is needed because CLPFD
+  %  is rather limited and doesn't see that this can be easily calculated in constant time.
+  % An alternative, faster way to do this is to write the entire calculation out explicitly
+  %  but this would be way more verbose and uglier
+  label([Db, Sb, Op, Mode, ShiftAmount]),
+  R #= 0b0110 + Dr + Sr + Opr + Moder + ShiftAmountr.
 
 
 % The helper function ath_asm replaces the intergers in Op, Mode and ShiftAmount with constant(integer)
@@ -130,7 +169,8 @@ asm(ins('DIVS', [D, S]), R) :- ath_asm([D, S, 0b0011, 1, 0], R).
 
 asm(ins('CAL', [register(D)]), R) :-
   register_mapping(D, Db),
-  R #= 0b0111 + (Db << 4).
+  lsh(Db, 4, Dr),
+  R #= 0b0111 + Dr.
 
 asm(ins('RET', []), R) :-
   R #= 0b1000.
@@ -138,17 +178,21 @@ asm(ins('RET', []), R) :-
 asm(ins('JLT', [register(D), register(S)]), R) :-
   register_mapping(D, Db),
   register_mapping(S, Sb),
-  R #= 0b1001 + (Db << 4) + (Sb << 6).
+  lsh(Db, 4, Dr),
+  lsh(Sb, 6, Sr),
+  R #= 0b1001 + Dr + Sr.
 
 asm(ins('PSH', [register(S)]), R) :-
   register_mapping(S, Sb),
-  R #= 0b1010 + (Sb << 6).
+  lsh(Sb, 6, Sr),
+  R #= 0b1010 + Sr.
 
 asm(ins('PUSH', Args), R) :- asm(ins('PSH', Args), R).
 
 asm(ins('POP', [register(D)]), R) :-
   register_mapping(D, Db),
-  R #= 0b1011 + (Db << 4).
+  lsh(Db, 4, Dr),
+  R #= 0b1011 + Dr.
 
 asm(ins('SYS', []), R) :-
   R #= 0b1100.
@@ -157,10 +201,13 @@ asm(ins('HLT', []), R) :-
   R #= 0b1101.
 
 asm(ins('JMP', [constant(M)]), R) :-
-  R #= 0b1110 + (M << 6).
+  lsh(M, 6, Mr),
+  R #= 0b1110 + Mr.
 
 asm(ins('JMR', [register(S)]), R) :-
-  R #= 0b1111 + (S << 6).
+  register_mapping(S, Sb),
+  lsh(Sb, 6, Sr),
+  R #= 0b1111 + Sr.
 
 % Helper function to make aliases for the ATH instruction
 % This is below the asm definition because otherwise there are warnings about
