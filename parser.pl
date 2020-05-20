@@ -31,7 +31,7 @@ proglines([A|Ls]) --> asm_instruction_parse(A), proglines(Ls).
 line_end --> whites, optional(commentline, []), ("\n" | call(eos)).
 
 commentline --> ";", string_without("\n", _).
-label_parse(label(Labelname)) --> string_without("\n:", Codes), ":", line_end, { atom_codes(Labelname, Codes) }.
+label_parse(label(Labelname)) --> string_without("\n: ", Codes), ":", line_end, { atom_codes(Labelname, Codes) }.
 
 argument(label(Labelname)) --> string_without("\n,:; ", Codes), ":", { atom_codes(Labelname, Codes) }.
 argument(register('A')) --> "A".
