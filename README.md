@@ -5,8 +5,8 @@
 RCPU is a 16-bit fantasy CPU architecture (that has however been
   implemented in
   [real hardware](https://github.com/redfast00/RCPU_FPGA)). The
-  goal of this project is to explore [symbolic execution](https://en.wikipedia.org/wiki/Symbolic_execution) combined with an
-  [SMT-solver](https://en.wikipedia.org/wiki/Satisfiability_modulo_theories) (like Z3). The goal of this project is to either
+  goal of this project is to explore [symbolic execution](https://en.wikipedia.org/wiki/Symbolic_execution) using Prolog.
+  The goal of this project is to either
   find inputs satisfying constraints on arbitrary RCPU programs or
   to prove that there are no possible inputs satisfying the
   constraints. The constraints can be on the internal state of the
